@@ -31,6 +31,9 @@ print(
                      
     '''
 )
+for i in range(0,5):
+    print(f'{5-i}초 후 프로그램을 시작합니다.')
+    time.sleep(1)
 
 # 포스트별 공감유저의 리스트 추출
 def checkMembers(post, curMembers):
@@ -38,7 +41,7 @@ def checkMembers(post, curMembers):
     driver.get(post)
     # 인플루언서 사이트일 경우, #document 아래 접근을 위해 다음과 같은 조치가 필요.
     if 'in.naver.com' in post:
-        wait.until(lambda d: d.find_elements_by_tag_name("iframe"))
+        wait.until(lambda d: d.find_element_by_tag_name("iframe"))
         driver.switch_to.frame(driver.find_elements_by_tag_name("iframe")[0])
 
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -48,7 +51,14 @@ def checkMembers(post, curMembers):
     # 아래로 스크롤링
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     # 공감유저수 링크
-    driver.find_element_by_class_name('btn_like_more').send_keys(Keys.ENTER)
+    try :
+        driver.find_element_by_class_name('btn_like_more').send_keys(Keys.ENTER)
+    except Exception as e:
+        print(e)
+        driver.find_element_by_class_name('btn_like_more').send_keys(Keys.ENTER)
+    else :
+        pass
+
     # driver.find_element_by_xpath('//*[@id="ct"]/div[4]/div[3]/div/div[1]/a').send_keys(Keys.ENTER)
 
     # 공강유저수 페이지 접근 체크
