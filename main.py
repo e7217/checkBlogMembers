@@ -31,6 +31,7 @@ print(
                      
     '''
 )
+driver.get('https://www.naver.com')
 for i in range(0,5):
     print(f'{5-i}초 후 프로그램을 시작합니다.')
     time.sleep(1)
@@ -38,9 +39,9 @@ for i in range(0,5):
 # 포스트별 공감유저의 리스트 추출
 def checkMembers(post, curMembers):
     # 포스트 접근
-    driver.get(post)
+    driver.get(post["postUrl"])
     # 인플루언서 사이트일 경우, #document 아래 접근을 위해 다음과 같은 조치가 필요.
-    if 'in.naver.com' in post:
+    if 'in.naver.com' in post["postUrl"]:
         wait.until(lambda d: d.find_element_by_tag_name("iframe"))
         driver.switch_to.frame(driver.find_elements_by_tag_name("iframe")[0])
 
@@ -61,7 +62,7 @@ def checkMembers(post, curMembers):
 
     # driver.find_element_by_xpath('//*[@id="ct"]/div[4]/div[3]/div/div[1]/a').send_keys(Keys.ENTER)
 
-    # 공강유저수 페이지 접근 체크
+    # 공감 유저수 페이지 접근 체크
     wait.until(lambda d: d.find_elements_by_xpath('//*[@id="ct"]/div[4]/div/ul/li'))
 
     # 가장 아래까지 스크롤 다운
@@ -95,10 +96,10 @@ def checkMembers(post, curMembers):
     intersection = set(memberList) & set(curMembers)
     print('공통 유저 : ', intersection)
     # 차집합
-    x = set(curMembers) - intersection
-    print('누락 유저 : ', x)
+    missUsers = set(curMembers) - intersection
+    print('누락 유저 : ', missUsers)
     # 확인대상 유저 리스트 중 공감하지 않은 유저 리스트 추출
-    return post, x
+    return post, missUsers
 
 # 엑셀 시트에서 공감포스트 및 확인대상 유저리스트 불러오기
 wbLoad = openpyxl.load_workbook('targetList.xlsx')
@@ -115,7 +116,7 @@ for i in datas:
             # 모바일 주소가 아닌 경우, 모바일 주소로 변환
             i[1].value = (i[1].value).replace('/blog.naver.com/', '/m.blog.naver.com/')
             if 'naver' in i[1].value:
-                posts.append(i[1].value)
+                posts.append({"postUser" : i[0].value, "postUrl" : i[1].value})
         except:
             pass
         if i[2].value is not None:
@@ -127,25 +128,29 @@ for i in datas:
 # 확인대상 맴버리스트 출력
 # print(members)
 
+# 유저기준 정리
 finalChart = {}
+# 포스트 기준 정리
+finalChart2 = []
 cnt = 1
 for post in posts:
 
-    x, y = checkMembers(post, members)
+    targetPost, missUsers = checkMembers(post, members)
     # 포스트별 공감 미수행 유저 출력
     print(
         f'''
     processing : {cnt}/{len(posts)}
-    targetPost : {x}
-    missingMember(s) : {y}
+    targetPost : {targetPost}
+    missingMember(s) : {missUsers}
     ''')
     # 딕셔너리화
-    for i in y:
+    for i in missUsers:
         if i in finalChart.keys():
             finalChart[i]["cnt"] = finalChart[i]["cnt"]+1
-            finalChart[i]["posts"].append(x)
+            finalChart[i]["posts"].append(targetPost["postUrl"])
         else :
-            finalChart[i] = {"cnt":1, "posts":[x] }
+            finalChart[i] = {"cnt":1, "posts":[targetPost["postUrl"]] }
+    finalChart2.append({ "post" : post, "missUsers": missUsers })
     cnt += 1
     # print(finalChart)
 
@@ -203,6 +208,32 @@ wbSaveSheet[f"b{rowCnt+1}"].border = Border(top=double)
 wbSaveSheet[f"c{rowCnt+1}"].border = Border(top=double)
 wbSaveSheet[f"d{rowCnt+1}"].border = Border(top=double)
 wbSaveSheet = AutoFitColumnSize(wbSaveSheet, margin=4)
+
+# 포스트 기준 시트 생성
+wbSaveSheet2 = wbSave.create_sheet('포스트 기준')
+rowCnt=2
+for i in finalChart2:
+    if rowCnt == 2:
+        wbSaveSheet2.cell(row=rowCnt, column=2, value='포스트 유저')
+        wbSaveSheet2.cell(row=rowCnt, column=2).border = Border(top=double, left=double, right=thin, bottom=double)
+        wbSaveSheet2.cell(row=rowCnt, column=3, value='포스트 주소')
+        wbSaveSheet2.cell(row=rowCnt, column=3).border = Border(top=double, left=thin, right=thin, bottom=double)
+        wbSaveSheet2.cell(row=rowCnt, column=4, value='누락 멤버')
+        wbSaveSheet2.cell(row=rowCnt, column=4).border = Border(top=double, left=thin, right=double, bottom=double)
+    elif rowCnt > 2:
+        wbSaveSheet2.cell(row=rowCnt, column=2, value=i['post']["postUser"])
+        wbSaveSheet2.cell(row=rowCnt, column=2).border = Border(top=thin, left=double, right=thin, bottom=thin)
+        wbSaveSheet2.cell(row=rowCnt, column=3, value=i['post']["postUrl"])
+        wbSaveSheet2.cell(row=rowCnt, column=3).border = Border(top=thin, left=thin, right=thin, bottom=thin)
+        wbSaveSheet2.cell(row=rowCnt, column=4, value=str(list(i['missUsers'])))
+        wbSaveSheet2.cell(row=rowCnt, column=4).border = Border(top=thin, left=thin, right=double, bottom=thin)
+        wbSaveSheet2.cell(row=rowCnt, column=4).fill = PatternFill("solid", fgColor="00FFFF00")
+    rowCnt += 1
+wbSaveSheet2.cell(row=rowCnt, column=2).border = Border(top=double)
+wbSaveSheet2.cell(row=rowCnt, column=3).border = Border(top=double)
+wbSaveSheet2.cell(row=rowCnt, column=4).border = Border(top=double)
+wbSaveSheet2 = AutoFitColumnSize(wbSaveSheet2, margin=6)
+
 endTime = datetime.datetime.now()
 print(
     f'''
@@ -215,6 +246,7 @@ print(
     complete!!
     '''
 )
+
 # 엑셀 파일 생성
 wbSave.save('results.xlsx')
 for i in range(0,10):
