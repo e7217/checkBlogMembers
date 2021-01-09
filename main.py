@@ -52,13 +52,7 @@ def checkMembers(post, curMembers):
     # 아래로 스크롤링
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     # 공감유저수 링크
-    try :
-        driver.find_element_by_class_name('btn_like_more').send_keys(Keys.ENTER)
-    except Exception as e:
-        print(e)
-        driver.find_element_by_class_name('btn_like_more').send_keys(Keys.ENTER)
-    else :
-        pass
+    driver.find_element_by_class_name('btn_like_more').send_keys(Keys.ENTER)
 
     # driver.find_element_by_xpath('//*[@id="ct"]/div[4]/div[3]/div/div[1]/a').send_keys(Keys.ENTER)
 
@@ -85,8 +79,13 @@ def checkMembers(post, curMembers):
     for i in members:
         member = i.text.split('\n')[0]
         # print(member)
-        memberList.append(member)
+        # 비교를 위한 소문자화
+        memberList.append(member.lower())
 
+    # 비교를 위한 소문자화
+    for i in range(0, len(curMembers)):
+        curMembers[i] = curMembers[i].lower()
+    print('curMembers: ',curMembers)
     # 공감유저 리스트와 확인대상 리스트 대조
     setMemberList = set(memberList)
     setCurMembers = set(curMembers)
@@ -98,6 +97,9 @@ def checkMembers(post, curMembers):
     # 차집합
     missUsers = set(curMembers) - intersection
     print('누락 유저 : ', missUsers)
+    # 포스트 당사자는 제외
+    if post["postUser"] in missUsers:
+        missUsers.remove(post["postUser"])
     # 확인대상 유저 리스트 중 공감하지 않은 유저 리스트 추출
     return post, missUsers
 
@@ -134,8 +136,13 @@ finalChart = {}
 finalChart2 = []
 cnt = 1
 for post in posts:
-
-    targetPost, missUsers = checkMembers(post, members)
+    try:
+        targetPost, missUsers = checkMembers(post, members)
+    except Exception as e:
+        print(e)
+        targetPost = post
+        missUsers = ['pass']
+        pass
     # 포스트별 공감 미수행 유저 출력
     print(
         f'''
@@ -145,6 +152,7 @@ for post in posts:
     ''')
     # 딕셔너리화
     for i in missUsers:
+
         if i in finalChart.keys():
             finalChart[i]["cnt"] = finalChart[i]["cnt"]+1
             finalChart[i]["posts"].append(targetPost["postUrl"])
