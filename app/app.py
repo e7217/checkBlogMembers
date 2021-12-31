@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import bs4
 
+# todo: blog인 경우와 post인 경우가 있으므로, 케이스를 나눌 필요가 있음
 
 # res = requests.get("https://blog.naver.com/SympathyHistoryList.naver?blogId=wjdalsry277&logNo=222190961111&layoutWidthClassName=contw-966&currentPage=1")
 
@@ -59,16 +60,20 @@ class Bloger(User):
     def like_complete_list(self):
         pass
 
+_ = []
 for i in range(1, 10):
     print("i : ", i)
     target = Notice(f"https://blog.naver.com/SympathyHistoryList.naver?blogId=wjdalsry277&logNo=222190961111&layoutWidthClassName=contw-966&currentPage={i}")
 
     blogers = target.liked_bloger()
-
     for key, bloger in enumerate(blogers):
         print(f"[{key}] bloger - name : {bloger.name}, id : {bloger.id}")
+        _.append(bloger)
     if len(blogers) < 60:
         break
+
+print(_)
+print("length : ", len(_))
 
 # with open("index.html", "w", encoding="utf-8") as f:
 #     f.write(html.prettify(formmater="html"))
