@@ -27,9 +27,14 @@ class Notice:
         pass
 
     def get_bloger(self, tag: bs4.element.Tag):
-        name = tag.find("span", attrs={"class":"ell2"}).a.text
-        id = tag.find("span", attrs={"class":"ell2"}).a["href"].split("/")[-1]
-
+        try:
+            name = tag.find("span", attrs={"class":"ell2"}).a.text
+            id = tag.find("span", attrs={"class":"ell2"}).a["href"].split("/")[-1]
+        except AttributeError as e:
+            print(e)
+            name = None
+            id = None
+            
         return User(name, id)
 
     def liked_bloger(self):
@@ -54,13 +59,16 @@ class Bloger(User):
     def like_complete_list(self):
         pass
 
+for i in range(1, 10):
+    print("i : ", i)
+    target = Notice(f"https://blog.naver.com/SympathyHistoryList.naver?blogId=wjdalsry277&logNo=222190961111&layoutWidthClassName=contw-966&currentPage={i}")
 
-target = Notice("https://blog.naver.com/SympathyHistoryList.naver?blogId=wjdalsry277&logNo=222190961111&layoutWidthClassName=contw-966&currentPage=1")
+    blogers = target.liked_bloger()
 
-blogers = target.liked_bloger()
-
-for bloger in blogers:
-    print(f"bloger - name : {bloger.name}, id : {bloger.id}")
+    for key, bloger in enumerate(blogers):
+        print(f"[{key}] bloger - name : {bloger.name}, id : {bloger.id}")
+    if len(blogers) < 60:
+        break
 
 # with open("index.html", "w", encoding="utf-8") as f:
 #     f.write(html.prettify(formmater="html"))
