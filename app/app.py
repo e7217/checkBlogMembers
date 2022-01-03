@@ -4,6 +4,9 @@ import bs4
 
 from abc import *
 
+from modules.notice import Blog, Post
+from modules.user import Bloger
+
 
 # res = requests.get("https://blog.naver.com/SympathyHistoryList.naver?blogId=wjdalsry277&logNo=222190961111&layoutWidthClassName=contw-966&currentPage=1")
 
@@ -12,86 +15,23 @@ from abc import *
 #     f.write(html.prettify(formatter='html'))
 # print(html)
 
-class User:
-    def __init__(self, name, id):
-        self.name = name
-        self.id = id
 
-    def link(self):
-        return "https://blog.naver.com/" + self.id
+# _ = []
+# for i in range(1, 10):
+#     print("i : ", i)
+#     target = Blog(f"https://blog.naver.com/SympathyHistoryList.naver?blogId=wjdalsry277&logNo=222190961111&layoutWidthClassName=contw-966&currentPage={i}")
 
-class Notice(metaclass = ABCMeta):
-    def __init__(self, url):
-        self.url = url
-        pass
+#     blogers = target.like()
 
-    def info(self):
-        pass
+#     for key, bloger in enumerate(blogers):
+#         print(f"[{key}] bloger - name : {bloger.name}, id : {bloger.id}")
+#         _.append(bloger)
+#     if len(blogers) < 60:
+#         break
 
-    @abstractmethod
-    def get_bloger(self, tag: bs4.element.Tag):
-        pass
-
-    @abstractmethod
-    def like(self):
-        pass
-
-
-    @abstractmethod
-    def _get_liked_bloger(self):
-        pass
-
-class Blog(Notice):
-
-    def get_bloger(self, tag: bs4.element.Tag):
-        # return super().get_bloger(tag)
-        try:
-            name = tag.find("span", attrs={"class":"ell2"}).a.text
-            id = tag.find("span", attrs={"class":"ell2"}).a["href"].split("/")[-1]
-        except AttributeError as e:
-            print(e)
-            name = None
-            id = None
-            
-        return User(name, id)
-
-    def like(self):
-        # return super().like()
-        res = requests.get(self.url)
-        html = BeautifulSoup(res.text, 'html.parser')
-        liked_bloger = html.find_all('div', {'class':'bloger'})
-        _bloger = []
-        for bloger in liked_bloger:
-            _bloger.append(self.get_bloger(bloger))
-        return _bloger
-
-    ...
-
-class Post(Notice):
-    ...
-
-class Bloger(User):
-    def __init__(self):
-        super().__init__()
-
-    def like_list(self):
-        pass
-
-    def like_complete_list(self):
-        pass
-
-_ = []
-for i in range(1, 10):
-    print("i : ", i)
-    target = Notice(f"https://blog.naver.com/SympathyHistoryList.naver?blogId=wjdalsry277&logNo=222190961111&layoutWidthClassName=contw-966&currentPage={i}")
-
-    blogers = target.like()
-
-    for key, bloger in enumerate(blogers):
-        print(f"[{key}] bloger - name : {bloger.name}, id : {bloger.id}")
-        _.append(bloger)
-    if len(blogers) < 60:
-        break
+target = Blog(f"http://m.search.naver.com/search.naver?where=m_view&sm=mtb_jum&query=대구+보건소+코로나검사+무료&url=https://m.blog.naver.com/assa9370/222190726272")
+like_url = target.like_url()
+print(like_url)
 
 print(_)
 print("length : ", len(_))
