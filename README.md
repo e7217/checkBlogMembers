@@ -12,3 +12,4 @@ pyinstaller --onefile main.py
 ```
 ## 추후 보완사항
 + 성능 최적화
++ pull 과정에서 소스 충돌 발생
