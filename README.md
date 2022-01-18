@@ -13,3 +13,4 @@ pyinstaller --onefile main.py
 ## 추후 보완사항
 + 성능 최적화
 + pull 과정에서 소스 충돌 발생
++ post 관련 항목은 requests 모듈만으로는 처리 불가
