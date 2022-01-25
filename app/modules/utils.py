@@ -15,12 +15,10 @@ class ChromeBrowser(metaclass=BrowserSingleton):
     
     def __init__(self) -> None:
         self.initialize()
-        ...
 
     def initialize(self):
         options = Options()
         options.page_load_strategy = 'eager'
-        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-        wait = WebDriverWait(driver, 20)
-
-    pass
+        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+        self.wait = WebDriverWait(self.driver, 20)
+        
