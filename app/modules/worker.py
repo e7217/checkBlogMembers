@@ -92,6 +92,7 @@ class PostWorker(NoticeWorker):
         like_total = []
         count_pre = 0
         while 1:
+            # 타임 스탬프를 같이 넣어주거나 스크롤 동작으로 유저 리스트를 완성시켜야 함
             like_list = self.like_in_page(self.like_url() + f'&fromNo={page_num}')
             count_current = len(like_list)
             if count_current <= count_pre:
