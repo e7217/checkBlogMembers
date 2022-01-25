@@ -4,9 +4,11 @@ import unicodedata
 from bs4 import BeautifulSoup
 import bs4
 import requests
+from selenium.webdriver.remote.webelement import WebElement
 
 from modules.base import NoticeBase
 from modules.user import User
+from modules.utils import ChromeBrowser
 
 
 class NoticeWorker(NoticeBase):
@@ -55,10 +57,15 @@ class BlogWorker(NoticeWorker):
 
 class PostWorker(NoticeWorker):
 
-    def get_bloger(self, tag: bs4.element.Tag):
+    def __init__(self, url):
+        super().__init__(url)
+        self.crawler = ChromeBrowser()
+
+    def get_bloger(self, element: WebElement):
         try:
-            user_name = tag.find("span", attrs={"class":"ell2"}).a.text
-            user_id = tag.find("span", attrs={"class":"ell2"}).a["href"].split("/")[-1]
+            user_name = element.find_element_by_tag_name("em").text
+            user_id = None
+            # user_id = element.find("span", attrs={"class":"ell2"}).a["href"].split("/")[-1]
         except AttributeError as e:
             print(e)
             user_name = None
@@ -66,35 +73,34 @@ class PostWorker(NoticeWorker):
             
         return User(user_name, user_id)
 
-    def _get_like_count(self, html):
-        content = html.find('div',{"class":"cont_header_inner"}).find('h2')
-        content_unicode = unicodedata.normalize('NFKD', content.get_text())
-        count = content_unicode.split(' ')[-1]
-        return count
+    def _get_like_count(self):
+        likers = self.crawler.driver.find_elements_by_xpath("//*[@id='cont']/div[1]/div/div/ul/li")
+        return likers
 
     def like_in_page(self, url):
-        res = requests.get(url)
-        html = BeautifulSoup(res.text, 'html.parser')
-        like_count = self._get_like_count(html)
-        liked_bloger = html.find_all('div', {'class':'bloger'})
-        if not int(like_count) <= len(html.find_all('li', {"class":"user_info_item"})):
-            return False
-        return liked_bloger
-            
+
+        self.crawler.driver.get(url)      
+        likers = self._get_like_count()
 
         _bloger = []
-        for bloger in liked_bloger:
+        for bloger in likers:
             _bloger.append(self.get_bloger(bloger))
         return _bloger
 
     def like_total(self):
         page_num = 1
         like_total = []
+        count_pre = 0
         while 1:
+            # 타임 스탬프를 같이 넣어주거나 스크롤 동작으로 유저 리스트를 완성시켜야 함
             like_list = self.like_in_page(self.like_url() + f'&fromNo={page_num}')
+            count_current = len(like_list)
+            if count_current <= count_pre:
+                break
             if not like_list:
-                page_num += 1
-                continue
+                break
             else: 
-                like_total += like_list
+                like_total = like_list
+                count_pre = len(like_list)
+                page_num += 1
         return like_total

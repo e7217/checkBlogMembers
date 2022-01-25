@@ -12,4 +12,13 @@ class BrowserSingleton(type):
         return cls._instances[cls]
 
 class ChromeBrowser(metaclass=BrowserSingleton):
-    pass
+    
+    def __init__(self) -> None:
+        self.initialize()
+
+    def initialize(self):
+        options = Options()
+        options.page_load_strategy = 'eager'
+        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+        self.wait = WebDriverWait(self.driver, 20)
+        
