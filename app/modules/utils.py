@@ -21,4 +21,12 @@ class ChromeBrowser(metaclass=BrowserSingleton):
         options.page_load_strategy = 'eager'
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         self.wait = WebDriverWait(self.driver, 20)
+
+class router:
+
+    def __init__(self, url):
+        self.url = url
+    
+    def get_object():
+        if 
         
